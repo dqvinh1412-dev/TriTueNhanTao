@@ -1,0 +1,144 @@
+import random
+from collections import deque
+
+GOAL_STATE = (1, 2, 3, 4, 5, 6, 7, 8, 0)
+
+
+def count_inversions(state):
+    """Đếm số cặp nghịch thế để kiểm tra tính giải được của cấu hình."""
+    arr = [x for x in state if x != 0]
+    inversions = 0
+    for i in range(len(arr)):
+        for j in range(i + 1, len(arr)):
+            if arr[i] > arr[j]:
+                inversions += 1
+    return inversions
+
+
+def is_solvable(state):
+    """Cấu hình 8-puzzle giải được nếu số lượng nghịch thế là số chẵn."""
+    return count_inversions(state) % 2 == 0
+
+
+def generate_random_solvable_state():
+    """Tạo ngẫu nhiên một cấu hình chắc chắn có lời giải."""
+    state_list = list(GOAL_STATE)
+    while True:
+        random.shuffle(state_list)
+        state_tuple = tuple(state_list)
+        # Không trùng với đích và phải giải được
+        if state_tuple != GOAL_STATE and is_solvable(state_tuple):
+            return state_tuple
+
+
+def get_neighbors(state):
+    """Tìm các trạng thái kế tiếp có thể di chuyển từ ô trống (0)."""
+    neighbors = []
+    state_list = list(state)
+    blank_idx = state_list.index(0)
+    row, col = divmod(blank_idx, 3)
+
+    # Các hướng di chuyển của ô trống: Lên, Xuống, Trái, Phải
+    moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    for dr, dc in moves:
+        nr, nc = row + dr, col + dc
+        if 0 <= nr < 3 and 0 <= nc < 3:
+            neighbor_idx = nr * 3 + nc
+            new_state = state_list[:]
+            new_state[blank_idx], new_state[neighbor_idx] = new_state[neighbor_idx], new_state[blank_idx]
+            neighbors.append(tuple(new_state))
+
+    return neighbors
+
+
+def solve_8_puzzle(start_state):
+    if start_state == GOAL_STATE:
+        return [start_state]
+
+    queue = deque([(start_state, [start_state])])
+    visited = {start_state}
+
+    while queue:
+        current_state, path = queue.popleft()
+
+        if current_state == GOAL_STATE:
+            return path
+
+        for neighbor in get_neighbors(current_state):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append((neighbor, path + [neighbor]))
+    return None
+
+
+def print_board(state):
+    """Hiển thị ma trận 3x3 trực quan."""
+    for i in range(0, 9, 3):
+        # Đổi số 0 thành khoảng trắng cho dễ nhìn
+        row_display = [str(x) if x != 0 else " " for x in state[i:i + 3]]
+        print("[" + " ".join(row_display) + "]")
+    print("-" * 15)
+
+
+def get_user_input():
+    """Nhận và kiểm tra dữ liệu nhập từ người dùng."""
+    print("\n--- NHẬP TRẠNG THÁI BAN ĐẦU ---")
+    print("Nhập 9 số từ 0 đến 8 cách nhau bởi dấu cách (0 là ô trống).")
+    print("Ví dụ mẫu (dễ giải): 1 2 3 4 0 5 7 8 6")
+    while True:
+        try:
+            user_input = input("Mời nhập: ").strip().split()
+            if len(user_input) != 9:
+                print("Lỗi: Phải nhập đủ 9 chữ số!")
+                continue
+
+            state = tuple(int(x) for x in user_input)
+
+            if sorted(state) != list(range(9)):
+                print("Lỗi: Các số phải từ 0 đến 8 và không trùng nhau!")
+                continue
+
+            if not is_solvable(state):
+                print("Cảnh báo: Cấu hình này không thể giải được toán học! Hãy nhập lại.")
+                continue
+
+            return state
+        except ValueError:
+            print("Lỗi: Vui lòng chỉ nhập số nguyên!")
+
+
+# --- CHƯƠNG TRÌNH CHÍNH ---
+def main():
+    is_first_round = True
+
+    while True:
+        if is_first_round:
+            start_state = get_user_input()
+            is_first_round = False
+        else:
+            print("\n--- AI TỰ ĐỘNG RANDOM TRẠNG THÁI MỚI ---")
+            start_state = generate_random_solvable_state()
+
+        print("\nTrạng thái bắt đầu:")
+        print_board(start_state)
+
+        print("AI đang tính toán bước giải...")
+        solution = solve_8_puzzle(start_state)
+
+        if solution:
+            print(f"==> AI tìm ra lời giải sau {len(solution) - 1} bước:")
+            for step in solution:
+                print_board(step)
+        else:
+            print("Không tìm thấy lời giải.")
+
+        # Hỏi người dùng có muốn tiếp tục chơi bằng chế độ random không
+        choice = input("Bạn muốn chơi tiếp với cấu hình RANDOM không? (y/n): ").strip().lower()
+        if choice != 'y':
+            print("Cảm ơn bạn đã sử dụng chương trình!")
+            break
+
+
+if __name__ == "__main__":
+    main()
