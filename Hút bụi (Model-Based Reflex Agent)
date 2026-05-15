@@ -1,0 +1,156 @@
+# MODEL-BASED REFLEX AGENT - VACUUM CLEANER
+
+import random
+# MÔI TRƯỜNG
+
+room = [
+    [1, 0, 1],
+    [0, 1, 0],
+    [1, 0, 0]
+]
+
+m = len(room)
+n = len(room[0])
+
+# vị trí ban đầu
+x = 0
+y = 0
+
+# MODEL
+
+visited = []
+
+# IN MÔI TRƯỜNG
+
+def print_room():
+
+    for row in room:
+        print(row)
+
+    print()
+
+# POSSIBLE MOVES
+
+def possible_move(x, y):
+
+    move = []
+
+    if x > 0:
+        move.append("UP")
+
+    if x < m - 1:
+        move.append("DOWN")
+
+    if y > 0:
+        move.append("LEFT")
+
+    if y < n - 1:
+        move.append("RIGHT")
+
+    return move
+
+# MOVE AGENT
+
+def move_agent(action, x, y):
+
+    if action == "UP":
+        x -= 1
+
+    elif action == "DOWN":
+        x += 1
+
+    elif action == "LEFT":
+        y -= 1
+
+    elif action == "RIGHT":
+        y += 1
+
+    return x, y
+
+# KIỂM TRA CÒN BỤI KHÔNG
+
+def still_dirty():
+
+    for row in room:
+
+        if 1 in row:
+            return True
+
+    return False
+
+# MODEL-BASED REFLEX AGENT
+
+step = 1
+
+print("TRẠNG THÁI BAN ĐẦU")
+print_room()
+
+while still_dirty():
+
+    print("STEP =", step)
+    print("Agent position =", (x, y))
+
+    # percept
+    state_value = room[x][y]
+
+    # UPDATE-STATE
+
+    current_state = (x, y)
+
+    # lưu vào model
+    if current_state not in visited:
+        visited.append(current_state)
+
+    # RULE-MATCH
+
+    # nếu ô bẩn
+    if state_value == 1:
+
+        print("Ô hiện tại BẨN")
+        print("ACTION = VACUUM")
+
+        room[x][y] = 0
+
+    # nếu ô sạch
+    else:
+
+        print("Ô hiện tại SẠCH")
+
+        moves = possible_move(x, y)
+
+        # tránh đi lại state cũ
+        valid_moves = []
+
+        for action in moves:
+
+            nx, ny = move_agent(action, x, y)
+
+            if (nx, ny) not in visited:
+                valid_moves.append(action)
+
+        # nếu không còn đường mới
+        if len(valid_moves) == 0:
+
+            valid_moves = moves
+
+        # chọn action
+        action = random.choice(valid_moves)
+
+        print("Possible move =", valid_moves)
+        print("ACTION =", action)
+
+        # thực hiện action
+        x, y = move_agent(action, x, y)
+
+    print("\nMÔI TRƯỜNG HIỆN TẠI")
+    print_room()
+
+    print("MODEL MEMORY =", visited)
+
+    print("----------------------------")
+
+    step += 1
+
+
+print("HOÀN THÀNH")
+print("TẤT CẢ Ô ĐÃ ĐƯỢC LÀM SẠCH")
