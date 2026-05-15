@@ -1,0 +1,138 @@
+from collections import deque
+# INITIAL & GOAL STATE
+
+start = [
+    [1, 2, 3],
+    [6, 5, 4],
+    [8, 7, 0]
+]
+
+goal = [
+    [1, 2, 3],
+    [6, 5, 4],
+    [7, 8, 0]
+]
+
+# MODEL
+visited = []
+
+# IN STATE
+
+def print_state(state):
+
+    for row in state:
+        print(row)
+
+    print()
+
+# TÌM Ô TRỐNG
+def find_zero(state):
+
+    for i in range(3):
+        for j in range(3):
+
+            if state[i][j] == 0:
+                return i, j
+
+
+# POSSIBLE MOVES
+
+def possible_moves(x, y):
+
+    moves = []
+
+    if x > 0:
+        moves.append("UP")
+
+    if x < 2:
+        moves.append("DOWN")
+
+    if y > 0:
+        moves.append("LEFT")
+
+    if y < 2:
+        moves.append("RIGHT")
+
+    return moves
+
+
+# UPDATE STATE
+
+def update_state(state, action):
+
+    x, y = find_zero(state)
+
+    new_state = [row[:] for row in state]
+
+    if action == "UP":
+        nx, ny = x - 1, y
+
+    elif action == "DOWN":
+        nx, ny = x + 1, y
+
+    elif action == "LEFT":
+        nx, ny = x, y - 1
+
+    elif action == "RIGHT":
+        nx, ny = x, y + 1
+
+    # đổi chỗ
+    new_state[x][y], new_state[nx][ny] = \
+        new_state[nx][ny], new_state[x][y]
+
+    return new_state
+
+# GOAL TEST
+
+def goal_test(state):
+
+    return state == goal
+
+# MODEL-BASED REFLEX AGENT
+current_state = start
+
+step = 1
+
+while True:
+
+    print("STEP", step)
+    print_state(current_state)
+
+    # GOAL TEST
+    if goal_test(current_state):
+
+        print("ĐÃ ĐẠT GOAL STATE")
+        break
+
+    # lưu trạng thái
+    visited.append(current_state)
+
+    x, y = find_zero(current_state)
+
+    # possible actions
+    actions = possible_moves(x, y)
+
+    moved = False
+
+    # RULE-MATCH
+    for action in actions:
+
+        next_state = update_state(current_state, action)
+
+        # tránh lặp lại state cũ
+        if next_state not in visited:
+
+            print("ACTION =", action)
+
+            current_state = next_state
+
+            moved = True
+            break
+
+    # nếu không còn đường đi
+    if not moved:
+
+        print("KHÔNG TÌM THẤY LỜI GIẢI")
+        break
+
+    step += 1
