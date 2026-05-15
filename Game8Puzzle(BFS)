@@ -1,0 +1,133 @@
+from collections import deque
+# BFS cho bài toán 8-Puzzle
+
+# Trạng thái bắt đầu
+start = (
+    (1, 2, 3),
+    (6, 5, 4),
+    (8, 7, 0)
+)
+
+# Trạng thái đích
+goal = (
+    (1, 2, 3),
+    (6, 5, 4),
+    (7, 8, 0)
+)
+
+# In trạng thái
+
+def print_state(state):
+    for row in state:
+        print(*row)
+    print()
+
+
+# Tìm vị trí ô trống
+
+def find_zero(state):
+
+    for i in range(3):
+        for j in range(3):
+
+            if state[i][j] == 0:
+                return i, j
+
+
+# Sinh trạng thái con
+
+def get_neighbors(state):
+
+    neighbors = []
+
+    x, y = find_zero(state)
+
+    # các hướng di chuyển
+    directions = [
+        (-1, 0, "UP"),
+        (1, 0, "DOWN"),
+        (0, -1, "LEFT"),
+        (0, 1, "RIGHT")
+    ]
+
+    for dx, dy, action in directions:
+
+        nx = x + dx
+        ny = y + dy
+
+        # kiểm tra hợp lệ
+        if 0 <= nx < 3 and 0 <= ny < 3:
+
+            # copy state
+            new_state = [list(row) for row in state]
+
+            # đổi chỗ
+            new_state[x][y], new_state[nx][ny] = \
+                new_state[nx][ny], new_state[x][y]
+
+            neighbors.append(
+                (tuple(tuple(row) for row in new_state), action)
+            )
+
+    return neighbors
+
+# BFS
+
+def bfs(start, goal):
+
+    # frontier = FIFO Queue
+    frontier = deque()
+
+    # đưa node đầu vào queue
+    frontier.append((start, []))
+
+    # tập trạng thái đã duyệt
+    reached = set()
+
+    while frontier:
+
+        # lấy node đầu queue
+        state, path = frontier.popleft()
+
+        # nếu gặp goal
+        if state == goal:
+            return path
+
+        reached.add(state)
+
+        # sinh các node con
+        for neighbor, action in get_neighbors(state):
+
+            if neighbor not in reached:
+
+                frontier.append(
+                    (neighbor, path + [(neighbor, action)])
+                )
+
+    return None
+
+# CHẠY THUẬT TOÁN
+solution = bfs(start, goal)
+
+# IN KẾT QUẢ
+if solution:
+
+    print("TÌM THẤY LỜI GIẢI\n")
+
+    print("Start State:")
+    print_state(start)
+
+    step = 1
+
+    for state, action in solution:
+
+        print("STEP", step)
+        print("Action:", action)
+        print_state(state)
+
+        step += 1
+
+else:
+
+    print("KHÔNG TÌM THẤY LỜI GIẢI")
+    print("Bài toán không giải được.")
