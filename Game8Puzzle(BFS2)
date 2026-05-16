@@ -1,0 +1,128 @@
+from collections import deque
+import copy
+
+# Trạng thái đầu
+start = [
+    ['X', 0, 0],
+    [1, 1, 1],
+    [0, 0, 1]
+]
+
+# Trạng thái đích
+goal = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+]
+
+# Các hướng di chuyển
+moves = {
+    "Up": (-1, 0),
+    "Down": (1, 0),
+    "Left": (0, -1),
+    "Right": (0, 1)
+}
+
+
+def find_x(state):
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 'X':
+                return i, j
+
+
+def is_goal(state):
+
+    temp = copy.deepcopy(state)
+
+    # đổi X thành 0 để so sánh
+    for i in range(3):
+        for j in range(3):
+            if temp[i][j] == 'X':
+                temp[i][j] = 0
+
+    return temp == goal
+
+
+def generate_children(state):
+
+    children = []
+
+    x, y = find_x(state)
+
+    for action, (dx, dy) in moves.items():
+
+        nx = x + dx
+        ny = y + dy
+
+        # kiểm tra biên
+        if 0 <= nx < 3 and 0 <= ny < 3:
+
+            new_state = copy.deepcopy(state)
+
+            # hoán đổi X
+            new_state[x][y], new_state[nx][ny] = \
+                new_state[nx][ny], new_state[x][y]
+
+            children.append((new_state, action))
+
+    return children
+
+
+def print_state(state):
+    for row in state:
+        print(row)
+    print()
+
+
+def bfs(start):
+
+    frontier = deque()
+
+    # Node = (state, parent, action, cost)
+    frontier.append((start, None, None, 0))
+
+    reached = []
+
+    while frontier:
+
+        state, parent, action, cost = frontier.popleft()
+
+        print("Đang xét node:")
+        print_state(state)
+
+        # kiểm tra goal
+        if is_goal(state):
+            print(">>> TÌM THẤY GOAL <<<")
+            return state
+
+        # đưa vào reached
+        reached.append(state)
+
+        # sinh node con
+        children = generate_children(state)
+
+        for child_state, child_action in children:
+
+            # tránh lặp
+            if child_state not in reached:
+
+                frontier.append(
+                    (
+                        child_state,
+                        state,
+                        child_action,
+                        cost + 1
+                    )
+                )
+
+    return None
+
+
+result = bfs(start)
+
+if result:
+    print("Kết quả cuối:")
+    print_state(result)
+else:
+    print("Không tìm thấy lời giải")
